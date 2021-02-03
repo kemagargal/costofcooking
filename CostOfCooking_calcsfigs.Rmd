@@ -2,13 +2,13 @@
 title: "The cost of cooking supplement"
 author: "Kate Magargal"
 date: "1/21/2021"
-output: word_document
-bibliography: "cocbib.bib"
+output: html_document
+#bibliography: "cocbib.bib"
 ---
 
 ```{r invisiblestuff, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
-setwd("C:/Users/Kate/Box Sync/Researcheez/Firewood_DB_proj/4.0_RR/FirewoodModelAnalysis_4RR") #home
+#setwd("C:/Users/Kate/Box Sync/Researcheez/Firewood_DB_proj/4.0_RR/FirewoodModelAnalysis_4RR") #home
 ```
 
 Libraries needed to recreate figures and plot parameter setup:
