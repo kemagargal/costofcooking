@@ -21,6 +21,7 @@ pre {
 
 ```{r invisiblestuff, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, fig.width=5, fig.height=6)
+library(kableExtra)
 #setwd("C:/Users/Kate/Box Sync/Researcheez/Firewood_DB_proj/4.0_RR/FirewoodModelAnalysis_4RR") #home
 ```
 
@@ -90,12 +91,24 @@ cooklimcalc <- function(preydat) {
 These two data tables contain all the information needed for the analysis. The first table is the same as table [] in the paper, and contains reported nutritional values for Great Basin prey items. The second table, table [] in the paper, provides the *cooking transforms* used in the analysis, with values derived from [@boback_cooking_2007; @carmody_energetic_2009; @carmody_energetic_2011; @groopman_cooking_2015]
 ```{r preydatload}
 preydat <- read.csv("preyattribs.csv")
-preydat
 ```
+
+```{r preydatshow, echo=FALSE}
+preydat %>%
+  kbl(caption = "Great Basin Prey Items") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+<br>
+<br>
 
 ```{r cooktransload}
 cooktrans <- read.csv("cookingtransforms.csv")
-cooktrans
+```
+
+```{r cooktranshow, echo=FALSE}
+cooktrans %>%
+  kbl(caption = "Table showing cooking transforms for each type of macronutrient") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
 ```
 
 <br>
@@ -114,6 +127,12 @@ preydat$total_atwater_kcal <- preydat$kcal_perkg_carb + preydat$kcal_perkg_lipid
 preydat$atwater_peret <- preydat$total_atwater_kcal/preydat$h_hrs.per.kg
 ```
 
+```{r atwatershow, echo=FALSE}
+preydat[,c(1,2, 10:14)] %>%
+  kbl(caption = "Atwater calculation results") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
 <br>
 <br>
 
@@ -126,8 +145,10 @@ Lets run through the model with a specific example, P. gairdneri. The reasons fo
 
 
 First, lets take a look at the values associated with the *P. gairdneri*, which is in the `preydat` data table. The sources of numbers reported in columns 3-8 can be found in table [] of the paper.
-```{r yampdat}
-preydat[preydat$label=="common_yampah",]
+```{r yampdat, echo=FALSE}
+preydat[preydat$label=="common_yampah",] %>%
+  kbl(caption = "") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
 ```
 
 <br>
@@ -190,9 +211,12 @@ plotp$eraw <- (
       )
 
 plotp$peretraw <-  plotp$eraw/preydat$h_hrs.per.kg[preydat$label=="common_yampah"]
-plotp
 ```
-
+```{r plotpshow, echo=FALSE}
+plotp %>%
+  kbl(caption = "The benefits of cooking as C_i varies") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
 <br>
 
 This next code chunk plots panel a. from figure []. To do this, it incporporates a for loop that calculates the *cooking cost limit* (`plotp$y`) in the same way as shown above, but for all values of `C_i`, completing the sensitivity analysis. For each value of `C_i`, a new polygon representing all the possible values for cooked *P. gairderi* is plotted, each in a lighter shade of grayscale. Black represents 10% `C_i`, with a *cooking cost limit* of `r plotp$y[plotp$nums==0.1]`. 100% of `C_i` (the amount derived from literature) is represented by the lightest gray, with a cooking cost limit of `r plotp$y[plotp$nums==1.0]`
@@ -379,9 +403,13 @@ The remaining calculations involve finding the *cooking cost limit* and the diff
 
   
 cooklimcalc(preydat = preydat) #note preydatcalcs.csv cannot be open in another program or there will be an error
-preydat
 ```
 
+```{r preycalcsshow, echo=FALSE}
+preydat %>%
+  kbl(caption = "Great Basin prey items") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
 
 ```{r preytypepointsplot}
 # par(pty="s") #make all the plots square 
@@ -447,7 +475,12 @@ for(i in 1:length(types)){
 
 #make the new data table for plotting
 typesaves<- data.frame(lg_game, nut, root, seed, sm_game, costrange)
-typesaves
+```
+
+```{r typeavesshow, echo=FALSE}
+typesaves %>%
+  kbl(caption = "Recreating booktabs style table") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
 ```
 
 <br>
