@@ -10,9 +10,17 @@ date: "2/4/2021"
 output: html_document
 bibliography: "coc.bib"
 ---
+```{css, echo = FALSE}
+pre {
+ 
+  margin-left: 50px;
+  padding-left: 15px;
+ 
+}
+```
 
 ```{r invisiblestuff, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, fig.width=5, fig.height=6)
 #setwd("C:/Users/Kate/Box Sync/Researcheez/Firewood_DB_proj/4.0_RR/FirewoodModelAnalysis_4RR") #home
 ```
 
@@ -25,12 +33,16 @@ This markdown document is the supplement material to the paper *The cost of cook
 1. a walk through a step-by-step derivation of how cooking increases the bioavailability of calories for *Perideridia gairdneri*, how that benefit is lost as the cost of cooking increases, and produce figure 2 from the main text,
 
 2. code to calculate the increase in bioavailability of calories with cooking for the rest of the Great Basin prey items, as well as how that benefit is impacted by the costs of cooking, and produce figures [].
+<br>
+<br>
+<br>
 
 **First, some setup:**
 
 Libraries needed to recreate figures and plot parameter setup:
 ```{r plotsetup, message=FALSE}
 library(RColorBrewer)
+library(viridis)
 library(cartography)
 library(fields)
 
@@ -41,6 +53,8 @@ par(pty="s",
     mar=c(4,4,2,2))
 ```
 
+<br>
+<br>
 **Functions**
 
 The function `cookperet` returns the cooked post-encounter return rate given the caloric bioavailability of cooked items, the handling time ('h'), and the added handling time for cooking (`cooking_cost`)
@@ -51,29 +65,26 @@ cookfunc <- function(e_cooked, h, cooking_cost) {e_cooked/(h+cooking_cost)}
 The function `cookclimcalc` calculates the *cooking cost limit*, or the maximum time one should spend to cook an item based on the post-encounter return rate for that item.
 ```{r cooklimcalcdef}
 cooklimcalc <- function(preydat) {
-
   for (i in (1:length(preydat$label))){
-      e_cooked <- preydat$e_cooked[i] #assign cooked caloric value for prey item
-      h <- preydat$h_hrs.per.kg[i] #assign non-cooking standard estimated hanglind time for prey item
-      cooking_cost <- seq(from= 0, to=6, by=.01) #create sequence of cooking costs to analyze
-      cook <- cookfunc(e_cooked, h, cooking_cost) #a set of e/h values for each cooking_cost value
+      cook <- cookfunc(preydat$total_atwater_kcal[i], preydat$h_hrs.per.kg[i], cooking_cost) #a set of e/h values for each cooking_cost value
       i #checkpoint that loop is working
       
-      ydiff <- preydat$peret_cooked[i] - preydat$post.encounter.return_bombcal[i] #calculate difference between cooked and raw e/h (no cooking cost)
-      ylim <- c(preydat$post.encounter.return_bombcal[i]-ydiff, preydat$peret_cooked[i]+ydiff)
-      
-        #calculate the cooking limit (place where curve crosses below raw value)
-      pts<- approx(data.frame(cook, cooking_cost), xout = preydat$post.encounter.return_bombcal[i]) #solves for value in question, but flips x and y
+      ydiff <- preydat$atwater_peret[i] - preydat$peret_raw[i] #calculate difference between cooked and raw e/h (no cooking cost)
+      #ylim <- c(preydat$peret_raw[i]-ydiff, preydat$atwater_peret[i]+ydiff)
+      #not sure what ylim is getting at
 
-        #####third, assign values and export csv
-      preydat$cooklim[i]<-pts$y
-      preydat$cookperetdiff[i]<-ydiff
+        #calculate the cooking limit (place where curve crosses below raw value)
+      pts<- approx(data.frame(cook, cooking_cost), xout = preydat$peret_raw[i]) #solves for value in question, but flips x and y
+
+        #####third, assign values to preydat using global assignment <<-
+      preydat$cooklim[i]<<-pts$y
+      preydat$cookperetdiff[i]<<-ydiff
     }
- # preydat<-return(preydat)
-  write.csv(preydat, "preydatcalcs.csv")
   }
 ```
 
+<br>
+<br>
 **Data**
 
 These two data tables contain all the information needed for the analysis. The first table is the same as table [] in the paper, and contains reported nutritional values for Great Basin prey items. The second table, table [] in the paper, provides the *cooking transforms* used in the analysis, with values derived from [@boback_cooking_2007; @carmody_energetic_2009; @carmody_energetic_2011; @groopman_cooking_2015]
@@ -87,9 +98,11 @@ cooktrans <- read.csv("cookingtransforms.csv")
 cooktrans
 ```
 
+<br>
+<br>
 **Atwater estimates**
 
-First, I calculate Atwater estimates for each prey type, given the percentage of protein, lipids, and carbohydrates reported in the literature. Here, I use the basic Atwater 4-9-4 formula, estimating 4 calories for each gram of protein, 9 calories for each gram of lipids, and 4 calories for each gram of carbohydrates [@atwater_report_1897].
+I use the Atwater estimate of caloric value for prey items, which represents the maximum possible energy extractable from a material, as an estimate of the cooked energetic value for that item. I calculate Atwater estimates for each prey type, given the percentage of protein, lipids, and carbohydrates reported in the literature. Here, I use the basic Atwater 4-9-4 formula, estimating 4 calories for each gram of protein, 9 calories for each gram of lipids, and 4 calories for each gram of carbohydrates [@atwater_report_1897].
 
 ```{r atwatercalcs}
 preydat$kcal_perkg_prot <- 4*1000*(preydat$pcnt_protein/100)
@@ -100,6 +113,9 @@ preydat$total_atwater_kcal <- preydat$kcal_perkg_carb + preydat$kcal_perkg_lipid
 
 preydat$atwater_peret <- preydat$total_atwater_kcal/preydat$h_hrs.per.kg
 ```
+
+<br>
+<br>
 
 ## *Perideridia gairdneri* (common yampah) example
 
@@ -114,6 +130,8 @@ First, lets take a look at the values associated with the *P. gairdneri*, which 
 preydat[preydat$label=="common_yampah",]
 ```
 
+<br>
+
 In this analysis, the Atwater estimates of caloric yield approximate the cooked value of the prey item. In this next chunk, I calculate the raw caloric value of a kilogram of *P. gairderi* (`eraw_yamp`) as well as the post-encounter return rate of a raw kilogram (`peretraw_yamp`). The raw caloric value is calculated by dividing the caloric value of each macronutrient by the *cooking transform*.
 ```{r yamprawcalc}
 eraw_yamp <- preydat$kcal_perkg_carb[preydat$label=="common_yampah"]/cooktrans$C_i[cooktrans$Macronutrient_Type=="Starch-USO"] + preydat$kcal_perkg_prot[preydat$label=="common_yampah"]/cooktrans$C_i[cooktrans$Macronutrient_Type == "Protein"] + preydat$kcal_perkg_lipids[preydat$label=="common_yampah"]/cooktrans$C_i[cooktrans$Macronutrient_Type == "Fat"]
@@ -123,6 +141,8 @@ peretraw_yamp <- eraw_yamp/preydat$h_hrs.per.kg[preydat$label=="common_yampah"]
 peretraw_yamp
 ```
 
+<br>
+
 Now, I will prepare the data to produce panel a. of figure [] from the paper, which allows for an examination of how the post-encounter return rate of *P. gairderi* shifts as the cost of cooking increases.
 
 The next code chunk takes the steps below to caclulate the *cooking cost limit* for *P. gairdneri*
@@ -130,7 +150,7 @@ The next code chunk takes the steps below to caclulate the *cooking cost limit* 
 1. create a range of cooking costs (in this case, from 0-2 hours, by intervals of .01 hours),
 2. calculate the range of post-encounter return rates based on the range of cooking costs,
 3. calculate the *cooking cost limit*, or the maximum cost of cooking that should be paid, as any additional costs would make the post-encounter return rate of the cooked item lower than the raw item.
-```{r plotpdat}
+```{r yamplim}
 #1
 cooking_cost <- seq(from= 0, to=2, by=.01)
 
@@ -146,6 +166,8 @@ ptsmax$y #the cost of cooking value beyond which cooking should not occur if the
 
 So, the *cooking cost limit* of *P. garideri* is `r ptsmax$y`.
 
+<br>
+
 Next, I will set up a dataframe that allows for a sensitivity analysis on the values used in the *cooking transform* (`C_i`). The next code chunk produces the same calculations of raw values and *cooking cost limit* done up to this point, except varies the value of `C_i` in increments from 10% of the reported value to 100% of the reported value for starch.
 
 The steps conducted in the following code are:
@@ -153,7 +175,7 @@ The steps conducted in the following code are:
 2. calculate values of `C_i` for a sensitivity analysis,
 3. calculate a raw energetic yield (`eraw`) and post-encounter return rate (`peretraw`) for each value of `C_i`,
 4. return the resulting data frame called `plotp`.
-```{r}
+```{r plotp}
 #1
 plotp <- data.frame(nums=seq(from = .1, to = 1, by= .1), x="NA", y="NA", stringsAsFactors = FALSE)
 
@@ -170,6 +192,8 @@ plotp$eraw <- (
 plotp$peretraw <-  plotp$eraw/preydat$h_hrs.per.kg[preydat$label=="common_yampah"]
 plotp
 ```
+
+<br>
 
 This next code chunk plots panel a. from figure []. To do this, it incporporates a for loop that calculates the *cooking cost limit* (`plotp$y`) in the same way as shown above, but for all values of `C_i`, completing the sensitivity analysis. For each value of `C_i`, a new polygon representing all the possible values for cooked *P. gairderi* is plotted, each in a lighter shade of grayscale. Black represents 10% `C_i`, with a *cooking cost limit* of `r plotp$y[plotp$nums==0.1]`. 100% of `C_i` (the amount derived from literature) is represented by the lightest gray, with a cooking cost limit of `r plotp$y[plotp$nums==1.0]`
 ```{r plota}
@@ -222,16 +246,10 @@ Panel b. from figure [] in the text plots how the *cooking cost limit* changes a
 ```{r plotb}
 plot(NA, cex.lab = 1.25, cex.axis = 1, xlim = c(1.2,2.25), xlab = expression(italic("C")[italic("i")]), ylim = c(0, 6.5), ylab = "Cooking Cost Limit (hrs)")
 
-# #with the reported (100%) starch content
-# cooklm<- lm(y ~ x, data = plotp)
-# abline(cooklm, lwd = 3, lty = 1, col = grays[1])
-
 getPalette = colorRampPalette(brewer.pal(9, "OrRd"))
 grad<-carto.pal("blue.pal", 10)
 
 for(i in nrow(plotp):1){
-#  cookedperet.it<-(yampdat$at_starch_pkg*.1*i+yampdat$at_prot_pkg+yampdat$at_lip_pkg)/yampdat$yamph #calculate the cooked peret for each C_i for the starch percentage represented in this iteration
-  
   plotp$eraw.it<- 
     preydat$kcal_perkg_carb[preydat$label=="common_yampah"]*.1*i/plotp$x +
     preydat$kcal_perkg_prot[preydat$label=="common_yampah"]/cooktrans[4,3] +
@@ -244,7 +262,6 @@ for(i in nrow(plotp):1){
   yampperetrange<- cookfunc(e_cooked = preydat$total_atwater_kcal[preydat$label=="common_yampah"], h = preydat$h_hrs.per.kg[preydat$label=="common_yampah"], cooking_cost) #calculates the post-encounter return rate of yampa across a range of cooking costs
 
   for(j in 1:nrow(plotp)){
-#    yampcook.itit <- cookfunc(plotp$ecooked.it[j], yampdat$yamph, cooking_cost)#calculates the peret for cooking cost for 10% starch
     newy<- plotp$peretraw.it[j]
 
     ptsfor<- approx(data.frame(yampperetrange, cooking_cost), xout = newy) #solves for the point location where the curve crosses the line (representing raw value), but flips x and y
@@ -296,16 +313,15 @@ text(4.25, 3300, "-")
 
 In this case, the raw post-encounter return rate is calculated as being $\geq$ `r min(plotp$peretraw.it)` and $\leq$ `r max(plotp$peretraw.it)`. Therefore, it takes quite a long investment in time for the post-encounter return rate of a cooked item to decrease below the low raw value. For the highest value of `C_i`, the *cooking cost limit* is `r max(plotp$y.it)`.
 
-
 Lets explore a few other aspects of the cooking trade-off for *P. gairderi*. What is the change in bioavailable calories (*e*, per kilogram)?
 
 When `C_i` = 2.24, and carbohydrate values are 100% of what was reported in the literature:
-```{r}
+```{r efullcooktransyamp}
 preydat$total_atwater_kcal[preydat$label=="common_yampah"]-plotp$eraw[10]
 ```
 
 When `C_i` = 1.124, and carbohydrate values are 100% of what was reported in the literature:
-```{r}
+```{r elowestcooktransyamp}
 preydat$total_atwater_kcal[preydat$label=="common_yampah"]-plotp$eraw[1]
 ```
 
@@ -313,23 +329,175 @@ How about the change in the post-encounter return rate of *P. gairdneri*?
 
 When `C_i` = 2.24, and carbohydrate values are 100% of what was reported in the literature:
 
-```{r}
+```{r peretfullcooktransyamp}
 preydat$atwater_peret[preydat$label=="common_yampah"]-plotp$peretraw[10]
 ```
 
 When `C_i` = 1.124, and carbohydrate values are 100% of what was reported in the literature:
-```{r}
+```{r peretlowestcooktransyamp}
 preydat$atwater_peret[preydat$label=="common_yampah"]-plotp$peretraw[1]
 ```
 
 This number reflects the increase in post-encounter return rates (in kcal/kg) if cooking can happen instantaneously with no added handling time. Of course, importantly, this is never the case. Yampa should be cooked any time the handling cost of cooking (added to other handling costs) is no greater than the *cooking cost limit*, or the point where the post-encounter return rate falls below the raw post-encounter return rate. For yampa, this cost threshold is:
-```{r}
+```{r yampcooklims}
 plotp$y[10] #the cooking cost limit when C_i=2.24
 plotp$y[1] #the cooking cost limit when C_i=1.124 (10% of the maximum 124% value for C_i)
 ```
 
 So, while a prey item like the common yampa would beneficially be cooked, one should never choose to cook it if the cost of cooking ranges much above .77 hours/kg.
 
+<br>
+<br>
+
+# The cooking trade-off for Great Basin prey types
+
+In this section, I work through the calculations used to quantify the *cooking trade-off* for the 34 prey items presented as part of the Great Basin prey database. The following code ultimately produces figures [].
+
+The first step is to calculate the raw *e* and post-encounter return rate would be for all prey items. To do this, I apply the cooking transforms in the 'cooktrans' data frame.
+
+```{r gbpreyrawcalcs}
+preydat$e_raw <- (
+      preydat$kcal_perkg_carb/cooktrans$C_i[match(preydat$starchtype,cooktrans$Code)]
+      + preydat$kcal_perkg_prot/cooktrans[4,3]
+      + preydat$kcal_perkg_lipids/cooktrans[5,3]
+      )
+
+preydat$peret_raw <- 
+  preydat$e_raw/preydat$h_hrs.per.kg #Calculating the cooked post-encounter return rate (sans firewood) into the master table
+```
+
+Keep in mind, the calculations above do not include an increase in handling time for cooking.
+
+<br>
+
+The remaining calculations involve finding the *cooking cost limit* and the difference between the cooked and raw post-encounter return rate (`cookperetdiff`) for the set of Great Basin prey items:
+```{r gbpreycookcalcs}
+  preydat$cooklim = rep(NA, length(preydat$label))  # create dummy column to hold calculated values for cooking cost limits
+  preydat$cookperetdiff = rep(NA, length(preydat$label))  # create dummy column to hold calculated values for the diff in peret that cooking makes
+
+    cooking_cost <- seq(from= 0, to=50, by=.01) #represents a range of cooking costs between no cost and 2 hours
+
+  
+cooklimcalc(preydat = preydat) #note preydatcalcs.csv cannot be open in another program or there will be an error
+preydat
+```
+
+
+```{r preytypepointsplot}
+# par(pty="s") #make all the plots square 
+
+#cooking limit histogram for all Great Basin prey resources
+#pdf(file = "../FullDraftJune2020/FigsTabs/CookingLimitHistogram.pdf", width = 6, height = 6)
+hist(preydat$cooklim, breaks = 20, ylim = c(0,20), labels = TRUE, xlab = "Cooking Cost Limits (hr/kg)", main = "", col = "gray")
+
+#plot prep for point plot
+# par(
+#   mar = c(5, 8, 4, 4),
+#   xpd=TRUE
+# )
+
+pColors <- with(preydat, data.frame(
+  PreyType = unique(PreyType), 
+  color = viridis(length(unique(PreyType)))
+  )) #create a df to assign colors to each prey type
+
+data.frame(subset(preydat, select = c(label, PreyType)),
+           matchRetVal = match(preydat$PreyType, pColors$PreyType))
+
+# pdf(file = "../FullDraftJune2020/FigsTabs/PointsPreyTypes.pdf", width = 6, height = 6)
+
+with(preydat, plot(cookperetdiff~cooklim, ylab = expression(paste(Delta, "  post-encounter return rates (kcal/hr) with cooking")), xlab = "\nCooking Cost Limit \n(hrs)", pch = 21, cex = 2, bg = pColors$color[match(PreyType, pColors$PreyType)]))
+
+text(2.8, 2600, expression(italic("P. gairdneri")))
+text(4.5, 1100, expression(italic("Cymopterus bulbosis")))
+segments(.9, 850, 1.2, 1000)
+
+text(5.8, 750, expression(italic("Lewisia rediviva")))
+
+text(11, 150, expression(italic("Calochortus nutalli")))
+
+
+legend(x = 14.9, y = 2825,
+       legend = as.character(pColors$PreyType[c(2,3,4,5,1)]),
+       pt.bg = pColors$color[c(2,3,4,5,1)], pch = 21, cex = 1, bty = 'o', xjust = 1, pt.cex = 2)
+
+par(opar)
+```
+
+<br>
+<br>
+
+The following chunk calculates the mean post-encounter return rate for increments of added cooking cost for each prey type.
+```{r preytypedcrplot}
+preydat$PreyType[preydat$PreyType == "large game"] <- "lg_game"
+preydat$PreyType[preydat$PreyType == "small game"] <- "sm_game"
+costrange <- seq(from = 0, to = 5, by = .1)
+types <- unique(preydat$PreyType)
+
+#create a new column in preydat for each value of costrange and calculate the post-encounter return rate for that added cost for each prey item
+for(i in 1:length(costrange)){
+    print(costrange[i])
+  preydat[, paste0("cost", costrange[i], sep = "")] <-   with(preydat, cookfunc(e_cooked = total_atwater_kcal, h = h_hrs.per.kg, cooking_cost = costrange[i]))
+  }
+
+#separate the calculated post-encounter return rates by cooking cost and prey type
+for(i in 1:length(types)){
+  assign(paste0(types[i]), apply(X=preydat[preydat$PreyType==types[i],-c(1:18)], MARGIN = 2, mean))
+  }
+
+#make the new data table for plotting
+typesaves<- data.frame(lg_game, nut, root, seed, sm_game, costrange)
+typesaves
+```
+
+<br>
+<br>
+
+Produce a plot to examine the change in mean post-encouter return rate for each prey type as the cost of cooking increases.
+```{r preytypeslinesplot}
+par(pty="s")
+
+#pColors$PreyType <- as.character(pColors$PreyType)
+pColors$PreyType[pColors$PreyType == "large game"] <- "lg_game"
+pColors$PreyType[pColors$PreyType == "small game"] <- "sm_game"
+
+
+#pdf(file = "../FullDraftJune2020/FigsTabs/LinesPreyTypes.pdf", width = 6, height = 6)
+
+with(typesaves, plot(log(lg_game) ~ costrange, type = "l", col=pColors$color[pColors$PreyType=="lg_game"], lwd=3, xlab = "Cost of cooking (hours)", ylab = "Mean cooked post-encounter return rate (kcal/hr)"))
+
+with(typesaves, lines(log(sm_game) ~ costrange, type = "l", col=pColors$color[pColors$PreyType=="sm_game"], lwd=3, xlab = "Cost of cooking (hours)", ylab = "Mean cooked post-encounter return rate (kcal/hr)"))
+
+with(typesaves, lines(log(nut) ~ costrange, type = "l", col=pColors$color[pColors$PreyType=="nut"], lwd=3, xlab = "Cost of cooking (hours)", ylab = "Mean cooked post-encounter return rate (kcal/hr)"))
+
+with(typesaves, lines(log(root) ~ costrange, type = "l", col=pColors$color[pColors$PreyType=="root"], lwd=3, xlab = "Cost of cooking (hours)", ylab = "Mean cooked post-encounter return rate (kcal/hr)"))
+
+with(typesaves, lines(log(seed) ~ costrange, type = "l", col=pColors$color[pColors$PreyType=="seed"], lwd=3, xlab = "Cost of cooking (hours)", ylab = "Mean cooked post-encounter return rate (kcal/hr)"))
+
+abline(v= mean(preydat$cooklim[preydat$PreyType=="lg_game"]), lty=2, lwd = 2, col = pColors$color[pColors$PreyType=="lg_game"], ylim = c(0,11))
+
+abline(v= mean(preydat$cooklim[preydat$PreyType=="sm_game"]), lty=2, lwd = 2, col = pColors$color[pColors$PreyType=="sm_game"])
+
+abline(v= mean(preydat$cooklim[preydat$PreyType=="nut"]), lty=2, lwd = 2, col = pColors$color[pColors$PreyType=="nut"])
+
+abline(v= mean(preydat$cooklim[preydat$PreyType=="root"]), lty=2, lwd = 2, col = pColors$color[pColors$PreyType=="root"])
+
+abline(v= mean(preydat$cooklim[preydat$PreyType=="seed"]), lty=2, lwd = 2, col = pColors$color[pColors$PreyType=="seed"])
+
+
+for(i in 1:length(types)){
+  segments(x0=3.8, y0=10-.25*i, x1=4, y1=10-.25*i, lwd = 3, col = pColors$color[pColors$PreyType==paste(types[i])])
+  }
+
+text(4.55, 9.75, "lg game")
+text(4.3, 9.53, "nuts")
+text(4.38, 9.28, "roots")
+text(4.43, 9.04, "seeds")
+text(4.6, 8.75, "sm game")
+```
+
+<br>
+<br>
 
 # References
 
