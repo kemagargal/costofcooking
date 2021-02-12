@@ -5,8 +5,8 @@ knit: (function(input_file, encoding) {
   rmarkdown::render(input_file,
  encoding=encoding,
  output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
-author: "Kate Magargal"
-date: "2/4/2021"
+author: "Kate Magargal, University of Utah Anthropology Department"
+date: "2/12/2021"
 output: html_document
 bibliography: "coc.bib"
 ---
