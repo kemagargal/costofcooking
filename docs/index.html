@@ -2210,6 +2210,7 @@ Thomomys sp.
 <h2><em>Perideridia gairdneri</em> (common yampah) example</h2>
 <p>Lets run through the model with a specific example, P. gairdneri. The reasons for choosing this prey item are: 1) It is broadly recorded as an important and commonly utilized prey item throughout it's range in western North America, including among Numic foragers. 2) Ethnohistoric records indicate it was eaten both raw and cooked. This analysis can lend some insight into economic explanations of why and when cooking should occur to an item that can be consumed raw. 3) A detailed analysis of the nutritional components of P. gairderi root material was conducted by Kaldy et. al 1980. This study describes the lab protocol in detail and - importantly - reports the carbohydrate breakdown between starch, sugars, and fiber. This is important because cooking primarily increases the bioavailability of calories from starch, but not so for the other forms of carbohydrates.</p>
 First, lets take a look at the values associated with the <em>P. gairdneri</em>, which is in the <code>preydat</code> data table. The sources of numbers reported in columns 3-8 can be found in table [] of the paper.
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:900px; ">
 <table class=" lightable-classic" style="font-family: Cambria; width: auto !important; margin-left: auto; margin-right: auto;">
 <caption>
 </caption>
@@ -2311,6 +2312,7 @@ U
 </tr>
 </tbody>
 </table>
+</div>
 <p><br></p>
 <p>In this analysis, the Atwater estimates of caloric yield approximate the cooked value of the prey item. In this next chunk, I calculate the raw caloric value of a kilogram of <em>P. gairderi</em> (<code>eraw_yamp</code>) as well as the post-encounter return rate of a raw kilogram (<code>peretraw_yamp</code>). The raw caloric value is calculated by dividing the caloric value of each macronutrient by the <em>cooking transform</em>.</p>
 <pre class="r"><code>eraw_yamp &lt;- preydat$kcal_perkg_carb[preydat$label==&quot;common_yampah&quot;]/cooktrans$C_i[cooktrans$Macronutrient_Type==&quot;Starch-USO&quot;] + preydat$kcal_perkg_prot[preydat$label==&quot;common_yampah&quot;]/cooktrans$C_i[cooktrans$Macronutrient_Type == &quot;Protein&quot;] + preydat$kcal_perkg_lipids[preydat$label==&quot;common_yampah&quot;]/cooktrans$C_i[cooktrans$Macronutrient_Type == &quot;Fat&quot;]
@@ -2708,6 +2710,7 @@ preydat$peret_raw &lt;-
 
   
 cooklimcalc(preydat = preydat) #note preydatcalcs.csv cannot be open in another program or there will be an error</code></pre>
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:900px; ">
 <table class=" lightable-classic" style="font-family: Cambria; width: auto !important; margin-left: auto; margin-right: auto;">
 <caption>
 Great Basin prey items
@@ -4677,6 +4680,7 @@ N
 </tr>
 </tbody>
 </table>
+</div>
 <pre class="r"><code># par(pty=&quot;s&quot;) #make all the plots square 
 
 #cooking limit histogram for all Great Basin prey resources

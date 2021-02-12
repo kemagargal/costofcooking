@@ -148,7 +148,8 @@ First, lets take a look at the values associated with the *P. gairdneri*, which 
 ```{r yampdat, echo=FALSE}
 preydat[preydat$label=="common_yampah",] %>%
   kbl(caption = "") %>%
-  kable_classic(full_width = F, html_font = "Cambria")
+  kable_classic(full_width = F, html_font = "Cambria") %>%
+  scroll_box(width = "900px")
 ```
 
 <br>
@@ -408,7 +409,8 @@ cooklimcalc(preydat = preydat) #note preydatcalcs.csv cannot be open in another 
 ```{r preycalcsshow, echo=FALSE}
 preydat %>%
   kbl(caption = "Great Basin prey items") %>%
-  kable_classic(full_width = F, html_font = "Cambria")
+  kable_classic(full_width = F, html_font = "Cambria") %>%
+  scroll_box(width = "900px")
 ```
 
 ```{r preytypepointsplot}
@@ -533,4 +535,3 @@ text(4.6, 8.75, "sm game")
 <br>
 
 # References
-
